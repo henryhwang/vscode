@@ -7,7 +7,7 @@ import 'vs/css!./media/paneviewlet';
 import * as nls from 'vs/nls';
 import { Event, Emitter } from 'vs/base/common/event';
 import { ColorIdentifier } from 'vs/platform/theme/common/colorRegistry';
-import { attachStyler, IColorMapping, attachButtonStyler, attachLinkStyler } from 'vs/platform/theme/common/styler';
+import { attachStyler, IColorMapping, attachButtonStyler, attachLinkStyler, attachProgressBarStyler } from 'vs/platform/theme/common/styler';
 import { SIDE_BAR_DRAG_AND_DROP_BACKGROUND, SIDE_BAR_SECTION_HEADER_FOREGROUND, SIDE_BAR_SECTION_HEADER_BACKGROUND, SIDE_BAR_SECTION_HEADER_BORDER, PANEL_BACKGROUND, SIDE_BAR_BACKGROUND } from 'vs/workbench/common/theme';
 import { append, $, trackFocus, toggleClass, EventType, isAncestor, Dimension, addDisposableListener, removeClass, addClass } from 'vs/base/browser/dom';
 import { IDisposable, combinedDisposable, dispose, toDisposable, Disposable, DisposableStore } from 'vs/base/common/lifecycle';
@@ -43,6 +43,9 @@ import { IOpenerService } from 'vs/platform/opener/common/opener';
 import { Button } from 'vs/base/browser/ui/button/button';
 import { Link } from 'vs/platform/opener/browser/link';
 import { LocalSelectionTransfer } from 'vs/workbench/browser/dnd';
+import { ProgressBar } from 'vs/base/browser/ui/progressbar/progressbar';
+import { ViewProgressIndicator } from 'vs/workbench/services/progress/browser/progressIndicator';
+import { IProgressIndicator } from 'vs/platform/progress/common/progress';
 
 export interface IPaneColors extends IColorMapping {
 	dropBackground?: ColorIdentifier;
@@ -181,6 +184,8 @@ export abstract class ViewPane extends Pane implements IView {
 	title: string;
 
 	private readonly menuActions: ViewMenuActions;
+	private progressBar!: ProgressBar;
+	private progressIndicator!: IProgressIndicator;
 
 	private toolbar?: ToolBar;
 	private readonly showActionsAlways: boolean = false;
@@ -285,6 +290,13 @@ export abstract class ViewPane extends Pane implements IView {
 		const onDidRelevantConfigurationChange = Event.filter(this.configurationService.onDidChangeConfiguration, e => e.affectsConfiguration(ViewPane.AlwaysShowActionsConfig));
 		this._register(onDidRelevantConfigurationChange(this.updateActionsVisibility, this));
 		this.updateActionsVisibility();
+
+		if (this.progressBar !== undefined) {
+			// Progress bar
+			this.progressBar = this._register(new ProgressBar(this.headerContainer));
+			this._register(attachProgressBarStyler(this.progressBar, this.themeService));
+			this.progressBar.hide();
+		}
 	}
 
 	protected renderTwisties(container: HTMLElement): void {
@@ -314,6 +326,24 @@ export abstract class ViewPane extends Pane implements IView {
 
 	protected layoutBody(height: number, width: number): void {
 		// noop
+	}
+
+	getProgressIndicator() {
+		if (!this.headerContainer) {
+			return undefined;
+		}
+
+		if (this.progressBar === undefined) {
+			// Progress bar
+			this.progressBar = this._register(new ProgressBar(this.headerContainer));
+			this._register(attachProgressBarStyler(this.progressBar, this.themeService));
+			this.progressBar.hide();
+		}
+
+		if (this.progressIndicator === undefined) {
+			this.progressIndicator = this.instantiationService.createInstance(ViewProgressIndicator, this, assertIsDefined(this.progressBar));
+		}
+		return this.progressIndicator;
 	}
 
 	protected getProgressLocation(): string {
