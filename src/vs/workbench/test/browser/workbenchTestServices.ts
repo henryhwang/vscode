@@ -105,6 +105,7 @@ export import TestStorageService = CommonWorkbenchTestServices.TestStorageServic
 export import TestWorkingCopyService = CommonWorkbenchTestServices.TestWorkingCopyService;
 import { ICodeEditor } from 'vs/editor/browser/editorBrowser';
 import { IDiffEditor } from 'vs/editor/common/editorCommon';
+import { IViewsService, IView } from 'vs/workbench/common/views';
 
 export function createFileEditorInput(instantiationService: IInstantiationService, resource: URI): FileEditorInput {
 	return instantiationService.createInstance(FileEditorInput, resource, undefined, undefined);
@@ -454,6 +455,17 @@ export class TestPanelService implements IPanelService {
 	getProgressIndicator(id: string) { return null!; }
 	hideActivePanel(): void { }
 	getLastActivePanelId(): string { return undefined!; }
+}
+
+export class TestViewsService implements IViewsService {
+	_serviceBrand: undefined;
+
+	onDidChangeViewVisibility = new Emitter<{ id: string; visible: boolean; }>().event;
+	isViewVisible(id: string): boolean { return true; }
+	getActiveViewWithId<T extends IView>(id: string): T | null { return null; }
+	openView<T extends IView>(id: string, focus?: boolean | undefined): Promise<T | null> { return Promise.resolve(null); }
+	closeView(id: string): void { }
+	getProgressIndicator(id: string) { return null!; }
 }
 
 export class TestEditorGroupsService implements IEditorGroupsService {
