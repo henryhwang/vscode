@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     fakeroot \
     rpm
     
-RUN git clone https://github.com/henryhwang/vscode.git .
+COPY . .
 
 RUN yarn
 
