@@ -61,6 +61,16 @@ jobs:
         cp -r node_modules/opn result/node_modules
         cp -r node_modules/vscode-minimist result/node_modules
         cp -r node_modules/is-wsl result/node_modules
+    - name: Create Dockerfile in result directory
+      run: |
+        cd result
+        cat >Dockerfile <<EOF
+        FROM node:12
+        WORKDIR /vscode
+        COPY . .
+        EXPOSE 8081
+        CMD bash
+        EOF
     - name: Build and push Docker images
       uses: docker/build-push-action@v1.0.1
       with:
