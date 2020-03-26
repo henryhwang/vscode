@@ -1,4 +1,4 @@
-FROM node:lts
+FROM node:lts AS compiler
 
 WORKDIR /vscode
 
@@ -19,16 +19,16 @@ FROM node:lts-alpine AS copyfiles
 
 WORKDIR /vscode
 
-COPY package.json .
-COPY out ./out
-COPY scripts ./scripts
-COPY extensions ./extensions
-COPY src/vs ./src/vs
-COPY remote/web ./remote/web
-COPY resources ./resources
-COPY node_modules/opn ./node_modules/opn
-COPY node_modules/vscode-minimist ./node_modules/vscode-minimist
-COPY node_modules/is-wsl ./node_modules/is-wsl
+COPY --from=compiler package.json .
+COPY --from=compiler out ./out
+COPY --from=compiler scripts ./scripts
+COPY --from=compiler extensions ./extensions
+COPY --from=compiler src/vs ./src/vs
+COPY --from=compiler remote/web ./remote/web
+COPY --from=compiler resources ./resources
+COPY --from=compiler node_modules/opn ./node_modules/opn
+COPY --from=compiler node_modules/vscode-minimist ./node_modules/vscode-minimist
+COPY --from=compiler node_modules/is-wsl ./node_modules/is-wsl
 
 FROM node:lts-alpine
 
